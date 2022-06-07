@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<launch>
+
+
+    <node pkg="rosbag" type="play" name="rosbag_play" args="
+    --clock -s 60 -r 0.7 /home/xcy/bag/center/2022-04-16-20-57-19.bag --topic /velodyne_points" />
+    <node pkg="tf" type="static_transform_publisher" name="base_velo" args="0 0 0 0 0 0 /base_link /velodyne 100" />
+    <!-- For Velodyne HDL-64 -->
+    <param name="/use_sim_time" value="true" />
+    <!--- -->
+    <node name="odom_estimation_node" pkg="lc_loam" type="map_builder_node" args="-configuration_directory $(find lc_loam)/configuration_files
+          -configuration_basename center.lua" output="screen"/>
+    <node name="laser_processing_node" pkg="lc_loam" type="laser_processing_node" args="-configuration_directory $(find lc_loam)/configuration_files
+          -configuration_basename center.lua" output="screen"/>
+
+    <node pkg="tf" type="static_transform_publisher" name="word2map_tf" args="0 0 0 0 0 0 /world /map 10" />
+    <arg name="rviz" default="true" />
+    <group if="$(arg rviz)">
+        <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" required="false" args="-d $(find lc_loam)/rviz/lc_loam.rviz" />
+    </group>
+
+
+    <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="trajectory_server_loam" ns="gt">
+        <param name="/target_frame_name" value="world" />
+        <param name="/source_frame_name" value="velodyne" />
+        <param name="/trajectory_update_rate" value="10.0" />
+        <param name="/trajectory_publish_rate" value="10.0" />
+    </node>
+    <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="trajectory_server_loam" ns="base_link">
+        <param name="/target_frame_name" value="world" />
+        <param name="/source_frame_name" value="base_link" />
+        <param name="/trajectory_update_rate" value="10.0" />
+        <param name="/trajectory_publish_rate" value="10.0" />
+    </node>
+
+</launch>
