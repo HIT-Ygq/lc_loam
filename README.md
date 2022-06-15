@@ -40,3 +40,5 @@ catkin_make install
 source install setup.bash
 roslaunch lc_loam kitti.launch
 ```
+
+## 论文地址：https://www.mdpi.com/1424-8220/22/12/4373/htm
